@@ -184,6 +184,7 @@ svg{display:block}
 .urkunde label{font-weight:800;font-size:.95rem;color:var(--tinte-2)}
 .urkunde input{font:800 1.15rem var(--f-text);padding:10px 14px;min-height:50px;border-radius:12px;border:3px solid var(--linie);background:var(--flaeche);color:var(--tinte);width:min(100%,320px);text-align:center}
 
+.marke-link{display:flex;align-items:center;gap:8px;text-decoration:none;color:inherit;min-height:44px}.marke-link:hover .zurueck{transform:translateX(-3px)}.zurueck{font-size:1.3em;line-height:1;transition:transform .15s}
 .fuss{font-size:.85rem;color:var(--tinte-2);text-align:center;line-height:1.5}
 #konfetti{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:50}
 @media (prefers-reduced-motion: reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
@@ -220,6 +221,8 @@ svg{display:block}
 .mini-knopf svg{width:20px;height:20px}
 .kopfknoepfe .mini-knopf{padding:0 10px;font-size:.9rem;min-height:42px}
 .kopf{flex-wrap:nowrap}.marke{flex:1 1 auto}
+.marke-link{display:flex;align-items:center;gap:8px;text-decoration:none;color:inherit;min-height:44px}.marke-link:hover .zurueck{transform:translateX(-3px)}.zurueck{font-size:1.3em;line-height:1;transition:transform .15s}
+.eingebettet .marke{display:none}.eingebettet .kopf{justify-content:flex-end}
 .album{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:10px}
 .album-tag{display:flex;flex-direction:column;align-items:center;gap:2px;text-align:center;padding:10px 6px;border-radius:16px;background:var(--flaeche);border:2px solid var(--linie)}
 .album-bild svg{width:56px;height:56px}
@@ -230,7 +233,7 @@ svg{display:block}
 
 <div class="app" id="app">
   <header class="kopf">
-    <div class="marke"><span class="pipo-mini" id="marke-pipo"></span><span id="plattform-name"></span></div>
+    <div class="marke"><a class="marke-link" href="https://bibelspatz.webflow.io/" aria-label="Zurück zur Bibelspatz-Startseite"><span class="zurueck" aria-hidden="true">←</span><span class="pipo-mini" id="marke-pipo"></span><span id="plattform-name"></span></a></div>
     <div class="kopfknoepfe"><button class="mini-knopf" id="musik-knopf" type="button" aria-pressed="true"></button><button class="mini-knopf" id="ton-knopf" type="button" aria-pressed="true"></button></div>
   </header>
   <nav aria-label="Fortschritt">
@@ -984,6 +987,7 @@ $("#musik-knopf").addEventListener("click", () => { Ton.musik = !Ton.musik; spei
 $("#ton-knopf").addEventListener("click", () => { Ton.an = !Ton.an; speicher.schreiben("bibelspatz.ton", Ton.an); tonKnopf(); if (Ton.an) { Ton.wecken(); Ton.klick(); } });
 
 document.documentElement.lang = "de-CH";
+try { if (window.self !== window.top) document.body.classList.add("eingebettet"); } catch (e) { document.body.classList.add("eingebettet"); }
 $("#marke-pipo").innerHTML = PIPO_SVG;
 $("#plattform-name").textContent = SPIEL.plattform;
 $("#fuss").textContent = `Erzählt nach der Bibel: ${SPIEL.stelle} · Zitate nach Luther 1912, sprachlich angepasst · ${SPIEL.plattform}`;
