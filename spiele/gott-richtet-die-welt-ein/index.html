@@ -223,6 +223,34 @@ svg{display:block}
 .kopf{flex-wrap:nowrap}.marke{flex:1 1 auto}
 .marke-link{display:flex;align-items:center;gap:8px;text-decoration:none;color:inherit;min-height:44px}.marke-link:hover .zurueck{transform:translateX(-3px)}.zurueck{font-size:1.3em;line-height:1;transition:transform .15s}
 .eingebettet .marke{display:none}.eingebettet .kopf{justify-content:flex-end}
+.welt{height:clamp(360px,calc(100svh - 175px),640px)}
+.startkarte{display:block;padding:12px}
+.startinnen{margin:auto;min-height:0}
+.startkarte{display:flex}
+@media (max-width:430px),(max-height:700px){
+  body{padding-block:8px 18px}
+  .kopfknoepfe .mini-knopf .lbl{display:none}
+  .kopfknoepfe .mini-knopf{padding:0 12px;min-width:46px;justify-content:center}
+  .marke{font-size:1rem}
+  .startkarte{padding:8px}
+  .startinnen{padding:14px;gap:8px}
+  .startinnen h1{font-size:1.7rem}
+  .startinnen .unter{font-size:1.05rem}
+  .startinnen .stelle,.startinnen .chip{font-size:.85rem;padding:3px 9px}
+  .startinnen .pipo-bild{width:52px;height:52px}
+  .startinnen .blase{font-size:.95rem;padding:8px 10px;line-height:1.35}
+  .startinnen .knopf{min-height:48px;font-size:1.05rem;padding:0 20px}
+  .startinnen .eyebrow{display:none}
+  .startinnen .reihe.ende{position:sticky;bottom:-4px;background:var(--papyrus);padding-top:6px;margin-top:auto}
+  .startinnen .reihe{gap:6px}
+  .dialog{left:6px;right:6px;bottom:6px;padding:10px;gap:10px}
+  .dlg-ico,.dlg-ico svg,.dlg-pipo{width:44px;height:44px}
+  .dlg-text{font-size:1.02rem}
+  .dlg-knoepfe .knopf{min-height:44px;font-size:1rem;padding:0 14px}
+  .hudchip{font-size:.85rem;padding:3px 9px}
+  .toast{font-size:.95rem;padding:9px 12px}
+  .stationen li .punkt{height:8px}
+}
 .album{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:10px}
 .album-tag{display:flex;flex-direction:column;align-items:center;gap:2px;text-align:center;padding:10px 6px;border-radius:16px;background:var(--flaeche);border:2px solid var(--linie)}
 .album-bild svg{width:56px;height:56px}
@@ -979,10 +1007,10 @@ function fokusUeberschrift() { const h = $("h1, h2", buehne); if (h) { h.setAttr
 
 function tonKnopf() {
   const b = $("#ton-knopf");
-  b.innerHTML = Ton.an ? `${ICON.tonAn} Ton an` : `${ICON.tonAus} Ton aus`;
+  b.innerHTML = Ton.an ? `${ICON.tonAn}<span class="lbl">Ton an</span>` : `${ICON.tonAus}<span class="lbl">Ton aus</span>`; b.setAttribute("aria-label", Ton.an ? "Ton ausschalten" : "Ton einschalten");
   b.setAttribute("aria-pressed", String(Ton.an));
 }
-function musikKnopf() { const b = $("#musik-knopf"); b.innerHTML = `${ICON_NOTE} Musik ${Ton.musik ? "an" : "aus"}`; b.setAttribute("aria-pressed", String(Ton.musik)); }
+function musikKnopf() { const b = $("#musik-knopf"); b.innerHTML = `${ICON_NOTE}<span class="lbl">Musik ${Ton.musik ? "an" : "aus"}</span>`; b.setAttribute("aria-label", Ton.musik ? "Musik ausschalten" : "Musik einschalten"); b.setAttribute("aria-pressed", String(Ton.musik)); }
 $("#musik-knopf").addEventListener("click", () => { Ton.musik = !Ton.musik; speicher.schreiben("bibelspatz.musik", Ton.musik); musikKnopf(); if (Ton.musik) { Ton.wecken(); Ton.musikAn(); } });
 $("#ton-knopf").addEventListener("click", () => { Ton.an = !Ton.an; speicher.schreiben("bibelspatz.ton", Ton.an); tonKnopf(); if (Ton.an) { Ton.wecken(); Ton.klick(); } });
 
