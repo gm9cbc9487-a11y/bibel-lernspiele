@@ -520,10 +520,6 @@ function konfetti() {
 
 
 /* ===== Erweiterung: Töne, Musik, Symbole ===== */
-SYM.stern = kachel("#1B2134", `<path d="M24 8l3.6 8.2 8.9 1-6.7 6 1.9 8.8L24 27.4 16.3 32l1.9-8.8-6.7-6 8.9-1z" fill="#FFE08A"/><circle cx="10" cy="12" r="1.8" fill="#FFF3C4"/><circle cx="38" cy="36" r="1.8" fill="#FFF3C4"/>`);
-SYM.mensch = kachel("#F1E2C6", `<rect x="8" y="24" width="14" height="19" rx="7" fill="#1F6F8B"/><circle cx="15" cy="16" r="6" fill="#B5754A"/><rect x="26" y="24" width="14" height="19" rx="7" fill="#C98A1C"/><circle cx="33" cy="16" r="6" fill="#A8754F"/>`);
-SYM.feder = kachel("#FFF3C4", `<path d="M38 8C20 8 11 19 11 31l-4 9 6-2c13 2 25-8 25-30Z" fill="#C98A1C"/>`);
-AUFG[0].sym = SYM[1]; AUFG[1].sym = SYM.stern; AUFG[2].sym = SYM[5]; AUFG[3].sym = SYM.mensch; AUFG[4].sym = SYM[1];
 const ICON_NOTE = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18V6l10-2v12" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/><circle cx="7" cy="18" r="2.8" fill="currentColor"/><circle cx="17" cy="16" r="2.8" fill="currentColor"/></svg>`;
 
 const SEMI = [0, 2, 4, 7, 9, 12, 14, 16, 19, 21, 24, 26];
@@ -556,18 +552,32 @@ Object.assign(Ton, {
   tschilp() { const c = audioCtx(); if (!c) return; const t = c.currentTime; [0, .11, .2].forEach((d, k) => glide(c, 2500 + k * 150, 3500, t + d, .07, "sine", .05)); }
 });
 Ton.musik = speicher.lesen("bibelspatz.musik", true);
-const MU = { on: false, timer: null, next: 0, step: 0, gain: null };
-const PENT = [0, 2, 4, 7, 9, 12, 14, 16];
-const MEL = [4, -1, 5, 4, 2, -1, 3, 2, 0, 2, 4, -1, 3, 2, 0, -1, 4, 5, 7, 5, 4, -1, 2, -1, 3, 4, 2, 0, 1, -1, 0, -1];
-const BASS = [0, -3, -5, 0];
+
+/* ===== Hintergrundmusik: eine kleine Melodie mit Akkorden, Bass und leisem Takt ===== */
+const MU = { on: false, timer: null, next: 0, step: 0, gain: null, rausch: null };
+const DUR = [0, 2, 4, 5, 7, 9, 11, 12, 14, 16];
+const AKK = [[0, 4, 7, 12], [-3, 0, 4, 9], [-7, -3, 0, 5], [-5, -1, 2, 7]];
+const WURZEL = [0, -3, -7, -5];
+const ARP = [0, 1, 2, 3, 2, 1, 2, 1];
+const PH_A = [[4, 4, 5, 4, 2, -1, 0, -1], [5, 5, 7, 5, 4, -1, 2, -1], [3, 3, 5, 3, 7, -1, 5, -1], [4, -1, 2, 4, 1, -1, -1, -1]];
+const PH_B = [[2, 4, 7, 4, 2, 4, 7, -1], [7, 9, 7, 5, 4, -1, 2, -1], [5, 5, 7, 5, 3, 5, 7, -1], [8, 7, 5, 4, 2, -1, -1, -1]];
+const ABFOLGE = [PH_A, PH_A, PH_B, PH_A];
+function tick(c, t0, vol) {
+  if (!MU.rausch) { const n = c.sampleRate * .05, b = c.createBuffer(1, n, c.sampleRate), d = b.getChannelData(0); for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / n); MU.rausch = b; }
+  const s = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain(); s.buffer = MU.rausch; f.type = "highpass"; f.frequency.value = 6000; g.gain.value = vol;
+  s.connect(f); f.connect(g); g.connect(MU.gain); s.start(t0);
+}
 function musikPlan() {
   const c = Ton.ctx; if (!c) return;
   if (!Ton.an || !Ton.musik || document.hidden) { MU.next = c.currentTime + .15; return; }
-  const dur = .357;
+  const dur = 60 / 96 / 2;
   while (MU.next < c.currentTime + .5) {
-    const s = MU.step % MEL.length, m = MEL[s];
-    if (m >= 0) { const f = hz(261.63, PENT[m]); ton1(c, f, MU.next, .9, "sine", .03, MU.gain); ton1(c, f * 2, MU.next, .4, "sine", .007, MU.gain); }
-    if (s % 8 === 0) ton1(c, hz(130.81, BASS[(s / 8) % 4]), MU.next, 2.4, "triangle", .026, MU.gain);
+    const bar = Math.floor(MU.step / 8) % 16, s = MU.step % 8, t = MU.next, ak = bar % 4, ph = ABFOLGE[Math.floor(bar / 4)][ak];
+    const m = ph[s];
+    if (m >= 0) { const f = hz(261.63, DUR[m]); ton1(c, f, t, .5, "triangle", .045, MU.gain); ton1(c, f * 2, t, .25, "sine", .008, MU.gain); }
+    ton1(c, hz(261.63, AKK[ak][ARP[s]]), t, .45, "sine", .014, MU.gain);
+    if (s === 0 || s === 4) ton1(c, hz(130.81, WURZEL[ak]) * (s === 4 ? 1.5 : 1), t, .8, "triangle", .05, MU.gain);
+    if (s % 2 === 1) tick(c, t, .012);
     MU.next += dur; MU.step++;
   }
 }
@@ -577,6 +587,10 @@ Ton.musikAn = function () {
   MU.timer = setInterval(musikPlan, 120);
 };
 
+SYM.stern = kachel("#1B2134", `<path d="M24 8l3.6 8.2 8.9 1-6.7 6 1.9 8.8L24 27.4 16.3 32l1.9-8.8-6.7-6 8.9-1z" fill="#FFE08A"/><circle cx="10" cy="12" r="1.8" fill="#FFF3C4"/><circle cx="38" cy="36" r="1.8" fill="#FFF3C4"/>`);
+SYM.mensch = kachel("#F1E2C6", `<rect x="8" y="24" width="14" height="19" rx="7" fill="#1F6F8B"/><circle cx="15" cy="16" r="6" fill="#B5754A"/><rect x="26" y="24" width="14" height="19" rx="7" fill="#C98A1C"/><circle cx="33" cy="16" r="6" fill="#A8754F"/>`);
+SYM.feder = kachel("#FFF3C4", `<path d="M38 8C20 8 11 19 11 31l-4 9 6-2c13 2 25-8 25-30Z" fill="#C98A1C"/>`);
+AUFG[0].sym = SYM[1]; AUFG[1].sym = SYM.stern; AUFG[2].sym = SYM[5]; AUFG[3].sym = SYM.mensch; AUFG[4].sym = SYM[1];
 
 /* =====================================================================
    SPIELZUSTAND
